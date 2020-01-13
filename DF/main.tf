@@ -7,7 +7,7 @@ provider "aws" {
 module "networking" {
     source = "./networking"
     vpc_cidr = "${var.vpc_cidr}"
-    #public_cidrs = "${var.public_cidrs}"
+    public_cidrs = "${var.public_cidrs}"
     private_cidrs = "${var.private_cidrs}"
 }
 
@@ -16,8 +16,18 @@ module "RDS" {
     source = "./RDS"
     subnets = "${module.networking.private_subnets}"
     vpc = "${module.networking.vpc}"
-    #private_cidrs = "${var.private_cidrs}"
+    public_cidrs = "${var.public_cidrs}"
 
+}
+
+module "compute" {
+    source = "./compute"
+    #instance_count = "${var.instance_count}"
+    subnets = "${module.networking.private_subnets}"
+    public_subnets = "${module.networking.public_subnets}"
+    vpc = "${module.networking.vpc}"
+    accessip = "${var.accessip}"
+    
 }
 
 

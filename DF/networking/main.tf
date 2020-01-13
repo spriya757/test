@@ -8,23 +8,23 @@ resource "aws_vpc" "datafactory_vpc" {
     }
 }
 
-#resource "aws_internet_gateway" "datafactory_gateway" {
- #   vpc_id = "${aws_vpc.datafactory_vpc.id}"
-  #  tags = {
-   #     Name = "datafactory_igw"
-    #}
-#}
+resource "aws_internet_gateway" "datafactory_gateway" {
+    vpc_id = "${aws_vpc.datafactory_vpc.id}"
+    tags = {
+        Name = "datafactory_igw"
+    }
+}
 
-#resource "aws_route_table" "datafactory_public_rt" {
- #   vpc_id = "${aws_vpc.datafactory_vpc.id}"
-#  route {
- #       cidr_block = "0.0.0.0/0"
-  #      gateway_id = "${aws_internet_gateway.datafactory_gateway.id}"
-   # }
-    #tags = {
-     #   Name = "public_rt"
-    #}
-#}
+resource "aws_route_table" "datafactory_public_rt" {
+    vpc_id = "${aws_vpc.datafactory_vpc.id}"
+    route {
+        cidr_block = "0.0.0.0/0"
+        gateway_id = "${aws_internet_gateway.datafactory_gateway.id}"
+    }
+    tags = {
+        Name = "public_rt"
+    }
+}
 
 resource "aws_default_route_table" "datafactory_private_rt" {
     default_route_table_id = "${aws_vpc.datafactory_vpc.default_route_table_id}"
@@ -33,31 +33,27 @@ resource "aws_default_route_table" "datafactory_private_rt" {
     }
 }
 
+resource "aws_subnet" "datafactory_public_subnet" {
+    vpc_id = "${aws_vpc.datafactory_vpc.id}"
+    count = 1
+    cidr_block = "${var.public_cidrs[count.index]}"
+    map_public_ip_on_launch = true
+    availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
 
+    tags = {
+       Name = "bitbucket_public_${count.index + 1}"
+    }
+}
 
-
-
-#resource "aws_subnet" "datafactory_public_subnet" {
- #   vpc_id = "${aws_vpc.datafactory_vpc.id}"
-  #  count = 2
-   # cidr_block = "${var.public_cidrs[count.index]}"
-    #map_public_ip_on_launch = true
-    #availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
-
-    #tags = {
-     #   Name = "bitbucket_public_${count.index + 1}"
-    #}
-#}
-
-#resource "aws_route_table_association" "datafactory_public_assoc" {
- #   count = length(aws_subnet.datafactory_public_subnet)
-  #  subnet_id = "${aws_subnet.datafactory_public_subnet.*.id[count.index]}"
-   # route_table_id = "${aws_route_table.datafactory_public_rt.id}"
-#}
+resource "aws_route_table_association" "datafactory_public_assoc" {
+    count = length(aws_subnet.datafactory_public_subnet)
+    subnet_id = "${aws_subnet.datafactory_public_subnet.*.id[count.index]}"
+    route_table_id = "${aws_route_table.datafactory_public_rt.id}"
+}
 
 resource "aws_subnet" "datafactory_private_subnet" {
     vpc_id = "${aws_vpc.datafactory_vpc.id}"
-    count = 2
+    count = 1
     cidr_block = "${var.private_cidrs[count.index]}"
     map_public_ip_on_launch = false
     availability_zone = "${data.aws_availability_zones.available.names[count.index]}"

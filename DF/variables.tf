@@ -1,7 +1,7 @@
 # networking variables
 variable "vpc_cidr"{}
 
-#variable "public_cidrs" {}
+variable "public_cidrs" {}
 variable "private_cidrs" {}
 
 #compute variables
